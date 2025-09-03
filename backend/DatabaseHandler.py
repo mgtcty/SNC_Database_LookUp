@@ -1,10 +1,8 @@
 # LAST MODIFIED BY: Michael Tolentino
 # LAST MODIFIED DATE: SEPT 3, 2025
 
-from sqlalchemy import create_engine, MetaData, Table, Column, Integer, String, Float, ForeignKey
+from sqlalchemy import create_engine, Column, Integer, String, ForeignKey
 from sqlalchemy.orm import sessionmaker, relationship, declarative_base
-from sentence_transformers import SentenceTransformer
-from pgvector.sqlalchemy import Vector
 import numpy as np
 import os
 import re
@@ -98,6 +96,17 @@ class DatabaseManager:
         except Exception as e:
             self.session.rollback()
             print(f"Error inserting sections: {e}")
+
+    def getManualNameIdPairs(self):
+        """
+        Retrieves all manuals from the database.
+
+        Returns:
+            list of tuples: Each tuple contains (manual_id, manual_title).
+        """
+        manualsIdPairs = self.session.query(Manuals.id, Manuals.title).all()
+        manuals, ids = zip(*manualsIdPairs)
+        return manuals, ids
 
     def printSampleSection(self):
         """

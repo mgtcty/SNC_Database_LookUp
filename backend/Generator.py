@@ -35,7 +35,7 @@ class Generator:
 
         messages = [
             {"role": "system", "content": "You are a helpful assistant specialized in Engineering Manuals and Engineering Principles. Answer ONLY using the given manual context. If you cannot find the answer in the context, respond with 'I don't know.'"},
-            {"role": "user", "content": f"""Context:\n{context_str}\n\nQuestion: {query}\n\nAnswer concisely and provide references in the form (Answer: actual_answer, Section Title: section_title, Page: page_start)."""}
+            {"role": "user", "content": f"""Context:\n{context_str}\n\nQuestion: {query}\n\nAnswer concisely and provide references in the form "Answer: actual_answer, Page: page_start"."""}
         ]
 
         # Use HuggingFace chat template
@@ -48,4 +48,8 @@ class Generator:
             eos_token_id=self.tokenizer.eos_token_id,
         )
 
-        return self.tokenizer.decode(outputs[0], skip_special_tokens=True)
+        raw_response = self.tokenizer.decode(outputs[0], skip_special_tokens=False)
+        assistant_start_index = raw_response.find("<|assistant|>") + len("<|assistant|>")
+        clean_response = raw_response[assistant_start_index:].strip()
+
+        return clean_response
