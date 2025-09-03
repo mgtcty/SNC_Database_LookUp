@@ -9,6 +9,7 @@ from backend.DatabaseHandler import DatabaseManager
 from dotenv import load_dotenv
 from backend.Retriever import Retriever
 from backend.Generator import Generator
+from backend.Reranker import Reranker
 
 class AIManualAssistant(QWidget):
     def __init__(self):
@@ -29,6 +30,8 @@ class AIManualAssistant(QWidget):
         # === AI Models ===
         self.retriever = Retriever()
         print("Retriever initialized.")
+        self.reranker = Reranker()
+        print("Reranker initialized.")
         self.generator = Generator()
         print("Generator initialized.") 
 
@@ -174,39 +177,42 @@ class AIManualAssistant(QWidget):
             QListWidgetItem(filename, self.manuals_list)
             self.chat_history.append(f"<i>Manual '{filename}' has been added.</i>")
 
-    def generateAIResponse(self):
+    def generateAIResponse(self, relevantSections=20):
         """
         Generates an AI response based on user input and updates the chat history.
         """
-        user_message = self.user_input.text()
-        if not user_message:
+        userMessage = self.user_input.text()
+        if not userMessage:
             return
 
-        self.chat_history.append(f"<b>You:</b> {user_message}")
+        self.chat_history.append(f"<b>You:</b> {userMessage}")
         self.user_input.clear()
 
-        if "hello" in user_message.lower():
-            ai_response = "Hello! How can I help you with the manuals today?"
-        elif "manuals" in user_message.lower():
+        if "hello" in userMessage.lower():
+            aiResponse = "Hello! How can I help you with the manuals today?"
+        elif "manuals" in userMessage.lower():
             if self.manuals:
-                manual_names = ", ".join([path.split('/')[-1] for path in self.manuals])
-                ai_response = f"I have the following manuals available: {manual_names}."
+                manualNames = ", ".join([path.split('/')[-1] for path in self.manuals])
+                aiResponse = f"I have the following manuals available: {manualNames}."
             else:
-                ai_response = "There are no manuals loaded yet. Please add new manuals"
+                aiResponse = "There are no manuals loaded yet. Please add new manuals"
         else:
             # add and store in a vector database
             self.retriever.add(self.contents, self.ids)
 
-            # retrieve relevant sections using faisss
-            top_ids = self.retriever.search(user_message, top_k=3)
-            top_contents, top_section_ids, section_numbers = self.db.giveSections(top_ids)
+            # retrieve [number] relevant sections using faisss
+            topIds = self.retriever.search(userMessage, top_k=relevantSections)
+            topContents, top_section_ids, sectionNumbers = self.db.giveSections(topIds)
+
+            # rerank sections
+            rerankedContents = self.reranker.rerank(userMessage, topContents, top_k=5)
 
             # generate response using TinyLlama (model used in Generator.py)
             print("Generating response...\n\n")
-            ai_response = self.generator.generate(user_message, top_contents, section_numbers)
-            print(ai_response)
+            aiResponse = self.generator.generate(userMessage, rerankedContents, sectionNumbers)
+            print(aiResponse)
 
-        self.chat_history.append(f"<b>AI:</b> {ai_response}")
+        self.chat_history.append(f"<b>AI:</b> {aiResponse}")
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

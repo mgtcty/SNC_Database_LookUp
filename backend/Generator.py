@@ -35,7 +35,7 @@ class Generator:
 
         messages = [
             {"role": "system", "content": "You are a helpful assistant specialized in Engineering Manuals and Engineering Principles. Answer ONLY using the given manual context. If you cannot find the answer in the context, respond with 'I don't know.'"},
-            {"role": "user", "content": f"""Context:\n{context_str}\n\nQuestion: {query}\n\nAnswer concisely and provide references in the form "Answer: actual_answer, Page: page_start"."""}
+            {"role": "user", "content": f"""Context:\n{context_str}\n\nQuestion: {query}\n\nAnswer concisely and accurately based on the above context. If the answer is not contained in the context, respond with "I don't know."""}
         ]
 
         # Use HuggingFace chat template

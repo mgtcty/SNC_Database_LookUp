@@ -36,7 +36,7 @@ class Retriever:
         for i, section_id in enumerate(ids):
             self.id_map[start + i] = section_id
 
-    def search(self, query, top_k=5):
+    def search(self, query, top_k=20):
         """
         Searches for the most relevant sections based on the query.
         Parameters:
