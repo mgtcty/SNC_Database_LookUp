@@ -30,11 +30,11 @@ class Generator:
             - str: The generated response.
         """
         context_str = "\n".join(
-            [f"[{i+1}] content: {txt} page: {pg}" for i, (txt, pg) in enumerate(zip(contexts, section_numbers))]
+            [f"[{i+1}] content: {contentText} page: {page}" for i, (contentText, page) in enumerate(zip(contexts, section_numbers))]
         )
 
         messages = [
-            {"role": "system", "content": "You are a helpful assistant specialized in Engineering Manuals. Answer ONLY using the given manual context. If you cannot find the answer in the context, respond with 'I don't know.'"},
+            {"role": "system", "content": "You are a helpful assistant specialized in Engineering Manuals and Engineering Principles. Answer ONLY using the given manual context. If you cannot find the answer in the context, respond with 'I don't know.'"},
             {"role": "user", "content": f"""Context:\n{context_str}\n\nQuestion: {query}\n\nAnswer concisely and provide references in the form (Answer: actual_answer, Section Title: section_title, Page: page_start)."""}
         ]
 
