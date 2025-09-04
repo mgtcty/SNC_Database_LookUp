@@ -12,10 +12,42 @@ class Generator:
     Methods:
         generate(query, contexts, section_numbers): Generates a response based on the query and contexts.
     """
+
+    """
+    models to consider:
+    - TinyLlama/TinyLlama-1.1B-Chat-v1.0 (1.1B parameters: possible to use in production if DAPT and SFT are done)
+    - microsoft/phi-2 (2.7B parameters) (not fit: ate a lot of memory, exceeded 16gb ram, not ideal for local deployment)
+    - microsoft/Phi-3-mini-4k-instruct (3.82B parameters: probably worse than phi-2 since it uses higher vram)
+    - unsloth/Qwen2.5-Coder-0.5B-Instruct (0.5B parameters: weak reasoning worse then tinyllama)
+    - meta-llama/Llama-3.2-1B (currently using this one, 1.2B parameters: neutral reasoning, good english)
+    """
     
-    def __init__(self, model_name="TinyLlama/TinyLlama-1.1B-Chat-v1.0"):
+    def __init__(self, model_name="meta-llama/Llama-3.2-1B-Instruct"):
         self.tokenizer = AutoTokenizer.from_pretrained(model_name)
         self.model = AutoModelForCausalLM.from_pretrained(model_name).to("cuda")
+
+    def cleanText(self, raw_response):
+        """
+        Extracts only the assistant's final response text from the raw LLaMA-style output.
+        """
+        # Find the last assistant header
+        header_marker = "<|end_header_id|>"
+        end_marker = "<|eot_id|>"
+
+        # Locate the last occurrence of header_marker
+        start_idx = raw_response.rfind(header_marker)
+        if start_idx == -1:
+            return raw_response.strip()  # fallback
+
+        start_idx += len(header_marker)
+
+        # Locate the first <|eot_id|> after that
+        end_idx = raw_response.find(end_marker, start_idx)
+        if end_idx == -1:
+            return raw_response[start_idx:].strip()
+
+        # Slice and clean
+        return raw_response[start_idx:end_idx].strip()
 
     def generate(self, query, contexts, section_numbers):
         """
@@ -33,9 +65,14 @@ class Generator:
             [f"[{i+1}] content: {contentText} page: {page}" for i, (contentText, page) in enumerate(zip(contexts, section_numbers))]
         )
 
+        # for debugging purposes
+        tokenized_contexts = self.tokenizer(context_str)
+        print(context_str, "\n\n\n\n")
+        print("the len of content tokens is: ",len(tokenized_contexts['input_ids']))
+
         messages = [
-            {"role": "system", "content": "You are a helpful assistant specialized in Engineering Manuals and Engineering Principles. Answer ONLY using the given manual context. If you cannot find the answer in the context, respond with 'I don't know.'"},
-            {"role": "user", "content": f"""Context:\n{context_str}\n\nQuestion: {query}\n\nAnswer concisely and accurately based on the above context. If the answer is not contained in the context, respond with "I don't know."""}
+            {"role": "system", "content": "You are a helpful assistant specialized in Engineering Manuals and Engineering Principles. Answer ONLY using the given manual."},
+            {"role": "user", "content": f"""Context:\n{context_str}\n\nQuestion: {query}\n\nAnswer concisely and accurately based on the above context."""}
         ]
 
         # Use HuggingFace chat template
@@ -49,7 +86,6 @@ class Generator:
         )
 
         raw_response = self.tokenizer.decode(outputs[0], skip_special_tokens=False)
-        assistant_start_index = raw_response.find("<|assistant|>") + len("<|assistant|>")
-        clean_response = raw_response[assistant_start_index:].strip()
+        clean_response = self.cleanText(raw_response)
 
         return clean_response

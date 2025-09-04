@@ -3,11 +3,15 @@ from sentence_transformers import CrossEncoder
 class Reranker:
     """
     A class designed to increased accuracy of the overall rag model by reranking the top k sections retrieved from the database through cross-encoder.
+    Attributes:
+        model_name (str): The name of the pre-trained cross-encoder model to use.
+    Methods:
+        rerank(query, passages, top_k): Reranks the given passages based on their relevance to the query.
     """
     def __init__(self, model_name="cross-encoder/ms-marco-MiniLM-L-6-v2"):
         self.model = CrossEncoder(model_name)
 
-    def rerank(self, query, passages, top_k=5):
+    def rerank(self, query, passages, top_k=4):
         """
         Reranks the given passages based on their relevance to the query.
 

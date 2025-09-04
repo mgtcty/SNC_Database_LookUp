@@ -26,6 +26,7 @@ class AIManualAssistant(QWidget):
         self.id_ls, self.manual_ls = self.db.getManualNameIdPairs()
         self.contents, self.ids = self.db.giveSections()
         os.system("cls")
+        print(len(self.contents))
 
         # === AI Models ===
         self.retriever = Retriever()
@@ -98,7 +99,7 @@ class AIManualAssistant(QWidget):
         left_panel_layout.addWidget(self.browse_pdf_btn)
 
         # Right Panel (Chat)
-        chat_label = QLabel('<b>Chat with SNC AI</b>')
+        chat_label = QLabel('<b>Chat with Llama SNC AI</b>')
         chat_label.setStyleSheet("padding-left: 5px; font-size: 14pt;")
         right_panel_layout = QVBoxLayout()
         right_panel_layout.addWidget(chat_label)
@@ -205,7 +206,7 @@ class AIManualAssistant(QWidget):
             topContents, top_section_ids, sectionNumbers = self.db.giveSections(topIds)
 
             # rerank sections
-            rerankedContents = self.reranker.rerank(userMessage, topContents, top_k=5)
+            rerankedContents = self.reranker.rerank(userMessage, topContents, top_k=4)
 
             # generate response using TinyLlama (model used in Generator.py)
             print("Generating response...\n\n")
