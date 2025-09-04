@@ -1,10 +1,10 @@
 # LAST MODIFIED BY: Michael Tolentino
 # LAST MODIFIED DATE: SEPT 3, 2025
 
-from backend.PdfHandler import PdfReader
-from backend.DatabaseHandler import DatabaseManager
-from backend.Retriever import Retriever
-from backend.Generator import Generator
+from PdfHandler import PdfReader
+from DatabaseHandler import DatabaseManager
+from Retriever import Retriever
+from Generator import Generator
 import os
 from dotenv import load_dotenv
 
@@ -20,9 +20,12 @@ def main():
     # === Database ===
     url = f"postgresql+psycopg2://{creds['user']}:{creds['password']}@{creds['host']}:{creds['port']}/{creds['dbname']}"
     db = DatabaseManager(url)
-    '''manual_id = db.insertManual("DETAILING MANUAL", "1st Edition Rev 0", "07/19/2022")
-    db.bulk_insert_sections(x.extracted_text, manual_id)''' # Uncomment to insert data
-    contents, ids = db.giveSections()
+    db.deleteAll()
+    print("Database cleared.")
+    manual_id = db.insertManual("DETAILING MANUAL", "1st Edition Rev 0", "07/19/2022")
+    db.bulk_insert_sections(x.extracted_text, manual_id) # Uncomment to insert data
+    print("PDF data inserted into the database.")
+    '''contents, ids = db.giveSections()
 
     # === RAG Components ===
     retriever = Retriever()
@@ -41,7 +44,7 @@ def main():
     ai_response = generator.generate(user_query, top_contents, section_numbers)
 
     os.system("cls")
-    print(f"AI Response:\n{ai_response}")
+    print(f"AI Response:\n{ai_response}")'''
 
 if __name__ == "__main__":
     main()

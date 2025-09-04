@@ -134,7 +134,7 @@ class AIManualAssistant(QWidget):
         """)
 
         # Disclaimer label
-        self.disclaimer_label = QLabel('SNC AI may still make mistake. Check sources.')
+        self.disclaimer_label = QLabel('Llama SNC AI may still make mistake. Check sources.')
         self.disclaimer_label.setStyleSheet("""
             QLabel {
                 font-size: 10pt;

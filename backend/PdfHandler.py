@@ -31,8 +31,8 @@ class PdfReader:
         with pdfplumber.open(self.file_path) as pdf:
             for pagenum, page in enumerate(pdf.pages):
                 # REMOVE ONCE DONE TESTING
-                if pagenum == 25:
-                    break
+                '''if pagenum == 25:
+                    break'''
                 text = page.extract_text()
                 if text:
                     # Find all section titles and their positions
